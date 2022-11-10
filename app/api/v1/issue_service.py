@@ -77,3 +77,11 @@ async def get_issue(
 ) -> Issue | None:
     """returns the issue matching provided id or null"""
     return db.query(IssueDB).filter(IssueDB.id == id).first()
+
+
+@app.delete("/issues/{id}/", response_model=Issue)
+async def delete_issue(id: int, db: LocalSession = Depends(get_db)):
+    target_issue = db.query(IssueDB).filter(IssueDB.id == id).first()
+    db.delete(target_issue)
+    db.commit()
+    return target_issue
