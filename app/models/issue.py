@@ -13,3 +13,9 @@ class Issue(Base):
     description = Column(Text)
     assignee = Column(String(64), index=True)
     status = Column(Enum(IssueStatus))
+
+    def update(self, title: str, description: str, assignee: str, status: Enum(IssueStatus), id: int = None, **kwargs):
+        self.title = title
+        self.description = description
+        self.assignee = assignee
+        self.status = status
