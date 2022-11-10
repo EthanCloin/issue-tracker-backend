@@ -85,3 +85,13 @@ async def delete_issue(id: int, db: LocalSession = Depends(get_db)):
     db.delete(target_issue)
     db.commit()
     return target_issue
+
+
+@app.put("/issues/{id}/", response_model=Issue)
+async def update_issue(id: int, updated_values: IssueCreate, db:LocalSession = Depends(get_db)):
+    
+    target_issue: IssueDB = db.query(IssueDB).filter(IssueDB.id == id).first()
+    target_issue.update(**updated_values.dict())
+    db.add(target_issue)
+    db.commit()
+    return target_issue

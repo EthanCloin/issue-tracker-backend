@@ -21,7 +21,7 @@ class IssueBase(BaseModel):
 
 class IssueCreate(IssueBase):
     """provided on client request"""
-
+    
     pass
 
 
