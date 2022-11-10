@@ -35,7 +35,6 @@ def init_issue_records():
         IssueCreate(title="5 Problem", description="really does it matter", assignee="mgmt", status=IssueStatus.CLOSED)
     ]
 
-    # mapped_issues = [Issue.from_orm(issue) for issue in issues]
     with Session(engine) as s:
         for issue in issues:
             db_issue = IssueDB(**issue.dict())
@@ -50,8 +49,7 @@ def on_startup():
     init_issue_records()
 
 
-# TODO: refactor all below paths to be more logical
-@app.post("/issues/")
+@app.post("/issues/", response_model=Issue)
 async def create_issue(issue: IssueCreate, db: LocalSession = Depends(get_db)):
     print("rec'd: " + str(issue))
     db_issue = IssueDB(**issue.dict())   
@@ -61,15 +59,21 @@ async def create_issue(issue: IssueCreate, db: LocalSession = Depends(get_db)):
     return db_issue
 
 
-# currently having an issue getting this data. need to figure out proper way to use
-# the dependency version of session to fetch data. at least the create works so use that
-@app.get("/issues/")
+@app.get("/issues/", response_model=list[Issue])
 async def get_all_issues(
     offset: int = 0, 
     limit: int = Query(default=20, lte=100), 
     db: LocalSession = Depends(get_db)
 ) -> list[Issue]:
+    """returns all issues, maximum 100 per request. use offset to get additional if necessary"""
     
     result = db.query(IssueDB).offset(offset).limit(limit).all()
 
     return result
+
+@app.get("/issues/{id}/", response_model=Issue)
+async def get_issue(
+    id: int, all_details: bool = False, db: LocalSession = Depends(get_db)
+) -> Issue | None:
+    """returns the issue matching provided id or null"""
+    return db.query(IssueDB).filter(IssueDB.id == id).first()
