@@ -1,4 +1,4 @@
-# from fastapi import FastAPI, HTTPException, Query, Depends
+"""this service provides endpoints to access issues in the database. """
 from fastapi import Depends, FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -11,7 +11,6 @@ from sqlalchemy.orm import Session
 # TODO: move app instance and CORS handling into upper-level main.py file
 #   replace this with an APIRouter and add it to higher-layer app
 # api setup
-print("APP ASSIGNED")
 app = FastAPI()
 
 # needs to be the frontend server url
@@ -25,8 +24,7 @@ app.add_middleware(
 )
 
 def init_issue_records():
-    """create default issue rows"""
-    print('creating issues lmfao')
+    """create default issue rows as test data"""
     issues = [
         IssueCreate(title="1 Problem", description="really does it matter", assignee="mgmt"),
         IssueCreate(title="2 Problem", description="really does it matter", assignee="mgmt", status=IssueStatus.CLOSED),
@@ -44,14 +42,13 @@ def init_issue_records():
 
 @app.on_event("startup")
 def on_startup():
-    print("STARTING UP")
     init_db()
     init_issue_records()
 
 
 @app.post("/issues/", response_model=Issue)
 async def create_issue(issue: IssueCreate, db: LocalSession = Depends(get_db)):
-    print("rec'd: " + str(issue))
+    """add issue to database"""
     db_issue = IssueDB(**issue.dict())   
     db.add(db_issue)
     db.commit()
@@ -81,6 +78,7 @@ async def get_issue(
 
 @app.delete("/issues/{id}/", response_model=Issue)
 async def delete_issue(id: int, db: LocalSession = Depends(get_db)):
+    """removes issue with provided id from database"""
     target_issue = db.query(IssueDB).filter(IssueDB.id == id).first()
     db.delete(target_issue)
     db.commit()
@@ -88,8 +86,10 @@ async def delete_issue(id: int, db: LocalSession = Depends(get_db)):
 
 
 @app.put("/issues/{id}/", response_model=Issue)
-async def update_issue(id: int, updated_values: IssueCreate, db:LocalSession = Depends(get_db)):
-    
+async def update_issue(id: int, updated_values: IssueCreate, db: LocalSession = Depends(get_db)):
+   """updates the issue with the given id with the provided new values. must provide all values
+    typically required to create a new issue."""
+
     target_issue: IssueDB = db.query(IssueDB).filter(IssueDB.id == id).first()
     target_issue.update(**updated_values.dict())
     db.add(target_issue)
