@@ -2,7 +2,8 @@
 
 see schema docstring for explanation of the Issue data"""
 
-from sqlalchemy import Column, Integer, String, Text, Enum
+from sqlalchemy import Column, Enum, Integer, String, Text
+
 from app.database.connector import Base
 from app.schema.issue import IssueStatus
 
@@ -21,7 +22,7 @@ class Issue(Base):
         title: str,
         description: str,
         assignee: str,
-        status: Enum(IssueStatus),
+        status: Enum[IssueStatus],
         id: int = None,
         **kwargs
     ):

@@ -1,12 +1,12 @@
 """this service provides endpoints to access issues in the database. """
 from fastapi import Depends, FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
 
 from app.api.v1.dependencies import LocalSession, get_db
-from app.database.connector import init_db, engine
-from app.schema.issue import Issue, IssueCreate, IssueStatus
+from app.database.connector import engine, init_db
 from app.models.issue import Issue as IssueDB
-from sqlalchemy.orm import Session
+from app.schema.issue import Issue, IssueCreate, IssueStatus
 
 # TODO: move app instance and CORS handling into upper-level main.py file
 #   replace this with an APIRouter and add it to higher-layer app
@@ -80,7 +80,8 @@ async def get_all_issues(
     limit: int = Query(default=20, lte=100),
     db: LocalSession = Depends(get_db),
 ) -> list[Issue]:
-    """returns all issues, maximum 100 per request. use offset to get additional if necessary"""
+    """returns all issues, maximum 100 per request. use offset to get
+    additional if necessary"""
 
     result = db.query(IssueDB).offset(offset).limit(limit).all()
 
@@ -108,8 +109,8 @@ async def delete_issue(id: int, db: LocalSession = Depends(get_db)):
 async def update_issue(
     id: int, updated_values: IssueCreate, db: LocalSession = Depends(get_db)
 ):
-    """updates the issue with the given id with the provided new values. must provide all values
-    typically required to create a new issue."""
+    """updates the issue with the given id with the provided new values.
+    must provide all values typically required to create a new issue."""
     target_issue: IssueDB = db.query(IssueDB).filter(IssueDB.id == id).first()
     target_issue.update(**updated_values.dict())
     db.add(target_issue)

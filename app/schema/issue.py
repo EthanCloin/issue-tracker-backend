@@ -6,9 +6,9 @@ description, assignee, and status. This issues will need to be filtered, sorted,
 and updated. much of that is currently done on the frontend."""
 
 from datetime import datetime
-from typing import Optional
-from pydantic import BaseModel
 from enum import Enum
+
+from pydantic import BaseModel
 
 
 class IssueStatus(str, Enum):

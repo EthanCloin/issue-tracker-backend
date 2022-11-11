@@ -1,8 +1,8 @@
+from pathlib import Path
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
-from pathlib import Path
-from app.schema.issue import Issue, IssueCreate, IssueStatus
+from sqlalchemy.orm import sessionmaker
 
 db_file = Path("app/temp.db")
 DATABASE_URL = f"sqlite:///{db_file}"
