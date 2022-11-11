@@ -2,10 +2,20 @@
 
 Backend for demo Issue Tracker application utilizing SQLite, SQLAlchemy ORM, and FastAPI framework
 
+## Running Server
+To run the server on your local machine, you will need to ensure that `poetry` and `python3.10` 
+are already installed. Refer to official documentation if 
+this is not the case.
+
+- Create a virtual environment with poetry by running `poetry env use python3.10`
+- Install dependencies with `poetry install`
+- Start the server by running `poetry run python3 -m app.console`
+- Test the endpoints by going to the /docs endpoint on the localhost
+
 ## Tasks
 
-- [ ] Support Issue PUT
-- [ ] Support Issue DELETE
+- [X] Support Issue PUT
+- [X] Support Issue DELETE
 - [ ] Support IssueDetail GET
 - [ ] Integrate with Frontend and replace restdb.io
 
