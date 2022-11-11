@@ -1,4 +1,6 @@
-"""sqlalchemy models to represent tables/columns in relational db"""
+"""sqlalchemy models to represent tables/columns in relational db
+
+see schema docstring for explanation of the Issue data"""
 
 from sqlalchemy import Column, Integer, String, Text, Enum
 from app.database.connector import Base
@@ -14,7 +16,15 @@ class Issue(Base):
     assignee = Column(String(64), index=True)
     status = Column(Enum(IssueStatus))
 
-    def update(self, title: str, description: str, assignee: str, status: Enum(IssueStatus), id: int = None, **kwargs):
+    def update(
+        self,
+        title: str,
+        description: str,
+        assignee: str,
+        status: Enum(IssueStatus),
+        id: int = None,
+        **kwargs
+    ):
         self.title = title
         self.description = description
         self.assignee = assignee

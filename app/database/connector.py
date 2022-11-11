@@ -11,7 +11,7 @@ engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 LocalSession = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+
 def init_db():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
-    
