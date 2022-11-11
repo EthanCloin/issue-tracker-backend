@@ -1,5 +1,5 @@
 # from fastapi import FastAPI, HTTPException, Query, Depends
-from fastapi import Depends, FastAPI, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.dependencies import LocalSession, get_db
@@ -71,5 +71,20 @@ async def get_all_issues(
 ) -> list[Issue]:
     
     result = db.query(IssueDB).offset(offset).limit(limit).all()
+
+    return result
+
+
+# get the data according to issue id
+@app.get("/issues/{issue_id}")
+async def get_issue(
+    issue_id: int,
+    db: LocalSession = Depends(get_db)
+) -> list[Issue]:
+    
+    print("issue id : " + str(issue_id))
+    result = db.query(IssueDB).filter(IssueDB.id == issue_id).first()
+    if result is None:
+        raise HTTPException(status_code=404, detail="User not found")
 
     return result
