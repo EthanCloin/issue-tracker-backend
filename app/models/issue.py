@@ -22,11 +22,15 @@ class Issue(Base):
         title: str,
         description: str,
         assignee: str,
-        status: Enum[IssueStatus],
+        status: IssueStatus,
         id: int = None,
         **kwargs
     ):
         self.title = title
         self.description = description
         self.assignee = assignee
-        self.status = status
+        # TODO: decide how to deal with mypy error:
+        #   Incompatible types in assignment (expression has type "Enum",
+        #   variable has type "str")
+
+        self.status = Enum(status)

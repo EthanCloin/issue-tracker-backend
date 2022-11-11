@@ -1,9 +1,11 @@
 """this service provides endpoints to access issues in the database. """
+from typing import Optional, Sequence
+
 from fastapi import Depends, FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from app.api.v1.dependencies import LocalSession, get_db
+from app.api.v1.dependencies import get_db
 from app.database.connector import engine, init_db
 from app.models.issue import Issue as IssueDB
 from app.schema.issue import Issue, IssueCreate, IssueStatus
@@ -65,7 +67,7 @@ def on_startup():
 
 
 @app.post("/issues/", response_model=Issue)
-async def create_issue(issue: IssueCreate, db: LocalSession = Depends(get_db)):
+async def create_issue(issue: IssueCreate, db: Session = Depends(get_db)):
     """add issue to database"""
     db_issue = IssueDB(**issue.dict())
     db.add(db_issue)
@@ -74,30 +76,29 @@ async def create_issue(issue: IssueCreate, db: LocalSession = Depends(get_db)):
     return db_issue
 
 
-@app.get("/issues/", response_model=list[Issue])
+@app.get("/issues/", response_model=Sequence[Issue])
 async def get_all_issues(
     offset: int = 0,
     limit: int = Query(default=20, lte=100),
-    db: LocalSession = Depends(get_db),
-) -> list[Issue]:
+    db: Session = Depends(get_db),
+) -> Sequence[Issue]:
     """returns all issues, maximum 100 per request. use offset to get
     additional if necessary"""
 
-    result = db.query(IssueDB).offset(offset).limit(limit).all()
-
-    return result
+    # TODO: add fxn to convert Issue Model to Schema for type safety
+    return db.query(IssueDB).offset(offset).limit(limit).all()
 
 
 @app.get("/issues/{id}/", response_model=Issue)
 async def get_issue(
-    id: int, all_details: bool = False, db: LocalSession = Depends(get_db)
+    id: int, all_details: bool = False, db: Session = Depends(get_db)
 ) -> Issue | None:
     """returns the issue matching provided id or null"""
     return db.query(IssueDB).filter(IssueDB.id == id).first()
 
 
 @app.delete("/issues/{id}/", response_model=Issue)
-async def delete_issue(id: int, db: LocalSession = Depends(get_db)):
+async def delete_issue(id: int, db: Session = Depends(get_db)):
     """removes issue with provided id from database"""
     target_issue = db.query(IssueDB).filter(IssueDB.id == id).first()
     db.delete(target_issue)
@@ -105,14 +106,16 @@ async def delete_issue(id: int, db: LocalSession = Depends(get_db)):
     return target_issue
 
 
-@app.put("/issues/{id}/", response_model=Issue)
+@app.put("/issues/{id}/", response_model=Optional[Issue])
 async def update_issue(
-    id: int, updated_values: IssueCreate, db: LocalSession = Depends(get_db)
+    id: int, updated_values: IssueCreate, db: Session = Depends(get_db)
 ):
     """updates the issue with the given id with the provided new values.
     must provide all values typically required to create a new issue."""
-    target_issue: IssueDB = db.query(IssueDB).filter(IssueDB.id == id).first()
-    target_issue.update(**updated_values.dict())
-    db.add(target_issue)
-    db.commit()
+    target_issue = db.query(IssueDB).filter(IssueDB.id == id).first()
+
+    if target_issue:
+        target_issue.update(**updated_values.dict())
+        db.add(target_issue)
+        db.commit()
     return target_issue
