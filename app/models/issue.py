@@ -29,8 +29,4 @@ class Issue(Base):
         self.title = title
         self.description = description
         self.assignee = assignee
-        # TODO: decide how to deal with mypy error:
-        #   Incompatible types in assignment (expression has type "Enum",
-        #   variable has type "str")
-
-        self.status = Enum(status)
+        self.status = status
