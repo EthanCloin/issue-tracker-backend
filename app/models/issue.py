@@ -1,6 +1,9 @@
-"""sqlalchemy models to represent tables/columns in relational db"""
+"""sqlalchemy models to represent tables/columns in relational db
 
-from sqlalchemy import Column, Integer, String, Text, Enum
+see schema docstring for explanation of the Issue data"""
+
+from sqlalchemy import Column, Enum, Integer, String, Text
+
 from app.database.connector import Base
 from app.schema.issue import IssueStatus
 
@@ -13,3 +16,21 @@ class Issue(Base):
     description = Column(Text)
     assignee = Column(String(64), index=True)
     status = Column(Enum(IssueStatus))
+
+    def update(
+        self,
+        title: str,
+        description: str,
+        assignee: str,
+        status: IssueStatus,
+        id: int = None,
+        **kwargs
+    ):
+        self.title = title
+        self.description = description
+        self.assignee = assignee
+        # TODO: decide how to deal with mypy error:
+        #   Incompatible types in assignment (expression has type "Enum",
+        #   variable has type "str")
+
+        self.status = Enum(status)

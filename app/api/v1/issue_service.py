@@ -1,17 +1,18 @@
-# from fastapi import FastAPI, HTTPException, Query, Depends
+"""this service provides endpoints to access issues in the database. """
+from typing import Optional, Sequence
+
 from fastapi import Depends, FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
-
-from app.api.v1.dependencies import LocalSession, get_db
-from app.database.connector import init_db, engine
-from app.schema.issue import Issue, IssueCreate, IssueStatus
-from app.models.issue import Issue as IssueDB
 from sqlalchemy.orm import Session
+
+from app.api.v1.dependencies import get_db
+from app.database.connector import engine, init_db
+from app.models.issue import Issue as IssueDB
+from app.schema.issue import Issue, IssueCreate, IssueStatus
 
 # TODO: move app instance and CORS handling into upper-level main.py file
 #   replace this with an APIRouter and add it to higher-layer app
 # api setup
-print("APP ASSIGNED")
 app = FastAPI()
 
 # needs to be the frontend server url
@@ -24,18 +25,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 def init_issue_records():
-    """create default issue rows"""
-    print('creating issues lmfao')
+    """create default issue rows as test data"""
     issues = [
-        IssueCreate(title="1 Problem", description="really does it matter", assignee="mgmt"),
-        IssueCreate(title="2 Problem", description="really does it matter", assignee="mgmt", status=IssueStatus.CLOSED),
-        IssueCreate(title="3 Problem", description="really does it matter", assignee="facility"),
-        IssueCreate(title="4 Problem", description="really does it matter", assignee="financial"),
-        IssueCreate(title="5 Problem", description="really does it matter", assignee="mgmt", status=IssueStatus.CLOSED)
+        IssueCreate(
+            title="1 Problem", description="really does it matter", assignee="mgmt"
+        ),
+        IssueCreate(
+            title="2 Problem",
+            description="really does it matter",
+            assignee="mgmt",
+            status=IssueStatus.CLOSED,
+        ),
+        IssueCreate(
+            title="3 Problem", description="really does it matter", assignee="facility"
+        ),
+        IssueCreate(
+            title="4 Problem", description="really does it matter", assignee="financial"
+        ),
+        IssueCreate(
+            title="5 Problem",
+            description="really does it matter",
+            assignee="mgmt",
+            status=IssueStatus.CLOSED,
+        ),
     ]
 
-    # mapped_issues = [Issue.from_orm(issue) for issue in issues]
     with Session(engine) as s:
         for issue in issues:
             db_issue = IssueDB(**issue.dict())
@@ -43,33 +59,63 @@ def init_issue_records():
             s.commit()
             s.refresh(db_issue)
 
+
 @app.on_event("startup")
 def on_startup():
-    print("STARTING UP")
     init_db()
     init_issue_records()
 
 
-# TODO: refactor all below paths to be more logical
-@app.post("/issues/")
-async def create_issue(issue: IssueCreate, db: LocalSession = Depends(get_db)):
-    print("rec'd: " + str(issue))
-    db_issue = IssueDB(**issue.dict())   
+@app.post("/issues/", response_model=Issue)
+async def create_issue(issue: IssueCreate, db: Session = Depends(get_db)):
+    """add issue to database"""
+    db_issue = IssueDB(**issue.dict())
     db.add(db_issue)
     db.commit()
     db.refresh(db_issue)
     return db_issue
 
 
-# currently having an issue getting this data. need to figure out proper way to use
-# the dependency version of session to fetch data. at least the create works so use that
-@app.get("/issues/")
+@app.get("/issues/", response_model=Sequence[Issue])
 async def get_all_issues(
-    offset: int = 0, 
-    limit: int = Query(default=20, lte=100), 
-    db: LocalSession = Depends(get_db)
-) -> list[Issue]:
-    
-    result = db.query(IssueDB).offset(offset).limit(limit).all()
+    offset: int = 0,
+    limit: int = Query(default=20, lte=100),
+    db: Session = Depends(get_db),
+) -> Sequence[Issue]:
+    """returns all issues, maximum 100 per request. use offset to get
+    additional if necessary"""
 
-    return result
+    # TODO: add fxn to convert Issue Model to Schema for type safety
+    return db.query(IssueDB).offset(offset).limit(limit).all()
+
+
+@app.get("/issues/{id}/", response_model=Issue)
+async def get_issue(
+    id: int, all_details: bool = False, db: Session = Depends(get_db)
+) -> Issue | None:
+    """returns the issue matching provided id or null"""
+    return db.query(IssueDB).filter(IssueDB.id == id).first()
+
+
+@app.delete("/issues/{id}/", response_model=Issue)
+async def delete_issue(id: int, db: Session = Depends(get_db)):
+    """removes issue with provided id from database"""
+    target_issue = db.query(IssueDB).filter(IssueDB.id == id).first()
+    db.delete(target_issue)
+    db.commit()
+    return target_issue
+
+
+@app.put("/issues/{id}/", response_model=Optional[Issue])
+async def update_issue(
+    id: int, updated_values: IssueCreate, db: Session = Depends(get_db)
+):
+    """updates the issue with the given id with the provided new values.
+    must provide all values typically required to create a new issue."""
+    target_issue = db.query(IssueDB).filter(IssueDB.id == id).first()
+
+    if target_issue:
+        target_issue.update(**updated_values.dict())
+        db.add(target_issue)
+        db.commit()
+    return target_issue
