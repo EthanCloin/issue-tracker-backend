@@ -12,14 +12,5 @@ this is not the case.
 - Start the server by running `poetry run python3 -m app.console`
 - Test the endpoints by going to the /docs endpoint on the localhost
 
-## Tasks
-
-- [X] Support Issue PUT
-- [X] Support Issue DELETE
-- [ ] Support IssueDetail GET
-- [ ] Integrate with Frontend and replace restdb.io
-
-## Concerns
-
-- Consider whether the models, schema, database packages should be simplified into a single file
-- Consider a better way to initialize the data besides putting it into the issue_service api file
+## Contributing
+Fork this repo and make a pull request. Or reach out to me via Discord (Starved Spectre#8883) to discuss what you would like to do. 
