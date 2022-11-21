@@ -70,7 +70,8 @@ def on_startup():
 @app.post("/issues/", response_model=Issue)
 async def create_issue(issue: IssueCreate, db: Session = Depends(get_db)):
     """add issue to database"""
-    return crud.db_create_issue(issue, db)
+    db_issue = crud.db_create_issue(issue, db)
+    return Issue.from_orm(db_issue)
 
 
 @app.get("/issues/", response_model=Sequence[Issue])
