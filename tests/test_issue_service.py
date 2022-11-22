@@ -14,7 +14,7 @@ def test_create_issue_success_with_full_issue():
     weird whitespace    characters""",
         assignee="My Test Assignee",
     )
-
-    response = client.create_issue(new_issue)
+    body = new_issue.dict()
+    response = client.post("/issues/", json=body)
     print("testing")
     print(response)

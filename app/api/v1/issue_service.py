@@ -6,10 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from app.api.v1.dependencies import get_db
+from app.database import crud
 from app.database.connector import engine, init_db
 from app.models.issue import Issue as IssueDB
 from app.schema.issue import Issue, IssueCreate, IssueStatus
-from app.database import crud
 
 # TODO: move app instance and CORS handling into upper-level main.py file
 #   replace this with an APIRouter and add it to higher-layer app
