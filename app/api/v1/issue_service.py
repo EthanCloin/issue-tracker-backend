@@ -77,14 +77,15 @@ async def create_issue(issue: IssueCreate, db: Session = Depends(get_db)):
 @app.get("/issues/", response_model=Sequence[Issue])
 async def get_all_issues(
     offset: int = 0,
-    limit: int = Query(default=20, lte=100),
+    limit: int = Query(default=20, le=100),
     db: Session = Depends(get_db),
 ) -> Sequence[Issue]:
     """returns all issues, maximum 100 per request. use offset to get
     additional if necessary"""
 
     # TODO: add fxn to convert Issue Model to Schema for type safety
-    return db.query(IssueDB).offset(offset).limit(limit).all()
+    db_issues = crud.db_get_all_issues(offset=offset, limit=limit, db=db)
+    return [Issue.from_orm(issue) for issue in db_issues]
 
 
 @app.get("/issues/{id}/", response_model=Issue)
