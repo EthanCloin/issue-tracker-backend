@@ -1,7 +1,7 @@
 """this service provides endpoints to access issues in the database. """
 from typing import Optional, Sequence
 
-from fastapi import Depends, FastAPI, Query
+from fastapi import Depends, FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -90,11 +90,15 @@ async def get_all_issues(
 
 @app.get("/issues/{id}/", response_model=Issue)
 async def get_issue(
-    id: int, all_details: bool = False, db: Session = Depends(get_db)
+    id: int, db: Session = Depends(get_db)
 ) -> Issue | None:
     """returns the issue matching provided id or null"""
     db_issue = crud.db_get_issue(id=id, db=db)
-    return Issue.from_orm(db_issue)
+    if db_issue:
+        return Issue.from_orm(db_issue)
+    else:
+        raise HTTPException(404, "issue with given id does not exist!")
+
 
 
 @app.delete("/issues/{id}/", response_model=Issue)
