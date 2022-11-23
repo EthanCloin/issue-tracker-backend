@@ -100,14 +100,14 @@ async def get_issue(
         raise HTTPException(404, "issue with given id does not exist!")
 
 
-
 @app.delete("/issues/{id}/", response_model=Issue)
 async def delete_issue(id: int, db: Session = Depends(get_db)):
     """removes issue with provided id from database"""
-    target_issue = db.query(IssueDB).filter(IssueDB.id == id).first()
-    db.delete(target_issue)
-    db.commit()
-    return target_issue
+    db_issue = crud.db_delete_issue(id=id, db=db)
+    if db_issue:
+        return db_issue
+    else:
+        raise HTTPException(404, "issue with given id does not exist!")
 
 
 @app.put("/issues/{id}/", response_model=Optional[Issue])

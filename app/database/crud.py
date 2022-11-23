@@ -24,3 +24,13 @@ def db_get_all_issues(
 
 def db_get_issue(id: int, db: Session) -> IssueDB:
     return db.query(IssueDB).filter(IssueDB.id == id).first()
+
+
+def db_delete_issue(id: int, db: Session):
+    target_issue = db.query(IssueDB).filter(IssueDB.id == id).first()
+    if target_issue:
+        db.delete(target_issue)
+        db.commit()
+        return target_issue
+    else:
+        return None
