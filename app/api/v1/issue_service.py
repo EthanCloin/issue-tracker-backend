@@ -93,7 +93,8 @@ async def get_issue(
     id: int, all_details: bool = False, db: Session = Depends(get_db)
 ) -> Issue | None:
     """returns the issue matching provided id or null"""
-    return db.query(IssueDB).filter(IssueDB.id == id).first()
+    db_issue = crud.db_get_issue(id=id, db=db)
+    return Issue.from_orm(db_issue)
 
 
 @app.delete("/issues/{id}/", response_model=Issue)

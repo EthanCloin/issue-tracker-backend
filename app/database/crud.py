@@ -20,3 +20,7 @@ def db_get_all_issues(
     db: Session,
 ) -> Sequence[IssueDB]:
     return db.query(IssueDB).offset(offset).limit(limit).all()
+
+
+def db_get_issue(id: int, db: Session) -> IssueDB:
+    return db.query(IssueDB).filter(IssueDB.id == id).first()
