@@ -1,15 +1,15 @@
 """this service provides endpoints to access issues in the database. """
 from typing import Optional, Sequence
 
-from fastapi import Depends, FastAPI, Query, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi import Depends, FastAPI, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.api.v1.dependencies import get_db
 from app.api.v1.exceptions import MissingIssueException
 from app.database import crud
-from app.schema.issue import Issue, IssueCreate, IssueStatus
+from app.schema.issue import Issue, IssueCreate
 
 # TODO: move app instance and CORS handling into upper-level main.py file
 #   replace this with an APIRouter and add it to higher-layer app
@@ -32,7 +32,8 @@ async def missing_issue_handler(req: Request, exc: MissingIssueException):
     return JSONResponse(
         status_code=404,
         content={
-            "message": f"Uh Oh...it looks like an issue with id={exc.issue_id} doesn't exist!"
+            "message": f"Uh Oh...it looks like an issue with "
+            f"id={exc.issue_id} doesn't exist!"
         },
     )
 
