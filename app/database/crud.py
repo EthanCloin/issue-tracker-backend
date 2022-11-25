@@ -34,3 +34,13 @@ def db_delete_issue(id: int, db: Session):
         return target_issue
     else:
         return None
+
+
+def db_update_issue(id: int, updated_values: IssueCreate, db: Session) -> IssueDB | None:
+    target_issue = db.query(IssueDB).filter(IssueDB.id == id).first()
+
+    if target_issue:
+        target_issue.update(**updated_values.dict())
+        db.add(target_issue)
+        db.commit()
+    return target_issue

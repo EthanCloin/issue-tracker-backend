@@ -116,10 +116,7 @@ async def update_issue(
 ):
     """updates the issue with the given id with the provided new values.
     must provide all values typically required to create a new issue."""
-    target_issue = db.query(IssueDB).filter(IssueDB.id == id).first()
-
-    if target_issue:
-        target_issue.update(**updated_values.dict())
-        db.add(target_issue)
-        db.commit()
-    return target_issue
+    db_issue = crud.db_update_issue(id=id, updated_values=updated_values, db=db)
+    if db_issue:
+        return db_issue
+    raise HTTPException(404, "issue with given id does not exist!")
