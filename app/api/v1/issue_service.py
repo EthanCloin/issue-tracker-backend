@@ -1,14 +1,14 @@
 """this service provides endpoints to access issues in the database. """
 from typing import Optional, Sequence
 
-from fastapi import Depends, FastAPI, Query, HTTPException
+from fastapi import Depends, FastAPI, Query, HTTPException, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from app.api.v1.dependencies import get_db
+from app.api.v1.exceptions import MissingIssueException
 from app.database import crud
-from app.database.connector import engine, init_db
-from app.models.issue import Issue as IssueDB
 from app.schema.issue import Issue, IssueCreate, IssueStatus
 
 # TODO: move app instance and CORS handling into upper-level main.py file
@@ -27,44 +27,19 @@ app.add_middleware(
 )
 
 
-def init_issue_records():
-    """create default issue rows as test data"""
-    issues = [
-        IssueCreate(
-            title="1 Problem", description="really does it matter", assignee="mgmt"
-        ),
-        IssueCreate(
-            title="2 Problem",
-            description="really does it matter",
-            assignee="mgmt",
-            status=IssueStatus.CLOSED,
-        ),
-        IssueCreate(
-            title="3 Problem", description="really does it matter", assignee="facility"
-        ),
-        IssueCreate(
-            title="4 Problem", description="really does it matter", assignee="financial"
-        ),
-        IssueCreate(
-            title="5 Problem",
-            description="really does it matter",
-            assignee="mgmt",
-            status=IssueStatus.CLOSED,
-        ),
-    ]
-
-    with Session(engine) as s:
-        for issue in issues:
-            db_issue = IssueDB(**issue.dict())
-            s.add(db_issue)
-            s.commit()
-            s.refresh(db_issue)
+@app.exception_handler(MissingIssueException)
+async def missing_issue_handler(req: Request, exc: MissingIssueException):
+    return JSONResponse(
+        status_code=404,
+        content={
+            "message": f"Uh Oh...it looks like an issue with id={exc.issue_id} doesn't exist!"
+        },
+    )
 
 
 @app.on_event("startup")
 def on_startup():
-    init_db()
-    init_issue_records()
+    crud.init_issue_records()
 
 
 @app.post("/issues/", response_model=Issue)
@@ -89,15 +64,13 @@ async def get_all_issues(
 
 
 @app.get("/issues/{id}/", response_model=Issue)
-async def get_issue(
-    id: int, db: Session = Depends(get_db)
-) -> Issue | None:
+async def get_issue(id: int, db: Session = Depends(get_db)) -> Issue | None:
     """returns the issue matching provided id or null"""
     db_issue = crud.db_get_issue(id=id, db=db)
     if db_issue:
         return Issue.from_orm(db_issue)
     else:
-        raise HTTPException(404, "issue with given id does not exist!")
+        raise MissingIssueException(id)
 
 
 @app.delete("/issues/{id}/", response_model=Issue)
@@ -107,7 +80,7 @@ async def delete_issue(id: int, db: Session = Depends(get_db)):
     if db_issue:
         return db_issue
     else:
-        raise HTTPException(404, "issue with given id does not exist!")
+        raise MissingIssueException(id)
 
 
 @app.put("/issues/{id}/", response_model=Optional[Issue])
@@ -119,4 +92,4 @@ async def update_issue(
     db_issue = crud.db_update_issue(id=id, updated_values=updated_values, db=db)
     if db_issue:
         return db_issue
-    raise HTTPException(404, "issue with given id does not exist!")
+    raise MissingIssueException(id)

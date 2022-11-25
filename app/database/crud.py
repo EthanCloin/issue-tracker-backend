@@ -2,9 +2,46 @@ from typing import Sequence
 
 from sqlalchemy.orm import Session
 
+from app.database import connector
 from app.models.issue import Issue as IssueDB
-from app.schema.issue import IssueCreate
+from app.schema.issue import IssueCreate, IssueStatus
 
+
+# startup helpers
+
+def init_issue_records():
+    connector.init_db()
+    """create default issue rows as test data"""
+    issues = [
+        IssueCreate(
+            title="1 Problem", description="really does it matter", assignee="mgmt"
+        ),
+        IssueCreate(
+            title="2 Problem",
+            description="really does it matter",
+            assignee="mgmt",
+            status=IssueStatus.CLOSED,
+        ),
+        IssueCreate(
+            title="3 Problem", description="really does it matter", assignee="facility"
+        ),
+        IssueCreate(
+            title="4 Problem", description="really does it matter", assignee="financial"
+        ),
+        IssueCreate(
+            title="5 Problem",
+            description="really does it matter",
+            assignee="mgmt",
+            status=IssueStatus.CLOSED,
+        ),
+    ]
+
+    with Session(connector.engine) as s:
+        for issue in issues:
+            db_issue = IssueDB(**issue.dict())
+            s.add(db_issue)
+            s.commit()
+            s.refresh(db_issue)
 
 def db_create_issue(issue_data: IssueCreate, db: Session) -> IssueDB:
     db_issue = IssueDB(**issue_data.dict())
