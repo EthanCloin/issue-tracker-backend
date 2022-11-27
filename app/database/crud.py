@@ -2,7 +2,7 @@ from typing import Optional, Sequence
 
 from sqlalchemy.orm import Session
 
-from app.database import connector
+from app.database.connector import DBEnv, init_db_for, get_engine_for
 from app.models.issue import Issue as IssueDB
 from app.schema.issue import IssueCreate, IssueStatus
 
@@ -10,7 +10,7 @@ from app.schema.issue import IssueCreate, IssueStatus
 
 
 def init_issue_records():
-    connector.init_db()
+    init_db_for(DBEnv.STAGING)
     """create default issue rows as test data"""
     issues = [
         IssueCreate(
@@ -36,7 +36,7 @@ def init_issue_records():
         ),
     ]
 
-    with Session(connector.engine) as s:
+    with Session(get_engine_for(DBEnv.STAGING)) as s:
         for issue in issues:
             db_issue = IssueDB(**issue.dict())
             s.add(db_issue)
