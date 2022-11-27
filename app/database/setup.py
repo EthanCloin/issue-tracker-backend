@@ -1,4 +1,4 @@
-from app.database.connector import init_db_for, DBEnv, get_engine_for, get_sessionmaker_for
+from app.database.connector import DBEnv, get_sessionmaker_for
 from app.models.issue import Issue as IssueDB
 from app.schema.issue import IssueCreate, IssueStatus
 

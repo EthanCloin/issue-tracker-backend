@@ -1,6 +1,6 @@
 from typing import Generator
 
-from app.database.connector import get_sessionmaker_for, DBEnv
+from app.database.connector import DBEnv, get_sessionmaker_for
 
 
 def get_db() -> Generator:

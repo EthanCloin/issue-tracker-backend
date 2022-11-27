@@ -1,5 +1,5 @@
-from pathlib import Path
 from enum import Enum, auto
+from pathlib import Path
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
@@ -45,17 +45,11 @@ def init_db_for(env: DBEnv) -> None:
 
 
 def get_sessionmaker_for(env: DBEnv) -> sessionmaker:
+    """returns a sessionmaker with an engine bound to the provided environment
+    best yielded as a dependency as in dependencies.get_db
+    usage:
+        maker = get_sessionmaker_for(DBEnv.PRODUCTION)
+        with maker() as session: <do stuff> """
+
     _engine = get_engine_for(env)
     return sessionmaker(autocommit=False, autoflush=False, bind=_engine)
-
-
-# db_file = Path("app/temp.db")
-# DATABASE_URL = f"sqlite:///{db_file}"
-#
-# engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-# LocalSession = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-#
-#
-# def init_db():
-#     Base.metadata.drop_all(bind=engine)
-#     Base.metadata.create_all(bind=engine)

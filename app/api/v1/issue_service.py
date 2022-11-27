@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.api.v1.dependencies import get_db
 from app.api.v1.exceptions import MissingIssueException
-from app.database import crud
+from app.database import crud, setup
 from app.schema.issue import Issue, IssueCreate
 
 # TODO: move app instance and CORS handling into upper-level main.py file
@@ -40,7 +40,8 @@ async def missing_issue_handler(req: Request, exc: MissingIssueException):
 
 @app.on_event("startup")
 def on_startup():
-    crud.init_issue_records()
+    setup.init_db_for(setup.DBEnv.STAGING)
+    setup.init_issue_records()
 
 
 @app.post("/issues/", response_model=Issue)
