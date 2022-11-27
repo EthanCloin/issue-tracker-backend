@@ -44,9 +44,11 @@ def init_db_for(env: DBEnv) -> None:
     Base.metadata.create_all(bind=_engine)
 
 
-def get_session_for(env: DBEnv) -> sessionmaker:
+def get_sessionmaker_for(env: DBEnv) -> sessionmaker:
     _engine = get_engine_for(env)
     return sessionmaker(autocommit=False, autoflush=False, bind=_engine)
+
+
 # db_file = Path("app/temp.db")
 # DATABASE_URL = f"sqlite:///{db_file}"
 #

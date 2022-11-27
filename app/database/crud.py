@@ -2,46 +2,8 @@ from typing import Optional, Sequence
 
 from sqlalchemy.orm import Session
 
-from app.database.connector import DBEnv, init_db_for, get_engine_for
 from app.models.issue import Issue as IssueDB
-from app.schema.issue import IssueCreate, IssueStatus
-
-# startup helpers
-
-
-def init_issue_records():
-    init_db_for(DBEnv.STAGING)
-    """create default issue rows as test data"""
-    issues = [
-        IssueCreate(
-            title="1 Problem", description="really does it matter", assignee="mgmt"
-        ),
-        IssueCreate(
-            title="2 Problem",
-            description="really does it matter",
-            assignee="mgmt",
-            status=IssueStatus.CLOSED,
-        ),
-        IssueCreate(
-            title="3 Problem", description="really does it matter", assignee="facility"
-        ),
-        IssueCreate(
-            title="4 Problem", description="really does it matter", assignee="financial"
-        ),
-        IssueCreate(
-            title="5 Problem",
-            description="really does it matter",
-            assignee="mgmt",
-            status=IssueStatus.CLOSED,
-        ),
-    ]
-
-    with Session(get_engine_for(DBEnv.STAGING)) as s:
-        for issue in issues:
-            db_issue = IssueDB(**issue.dict())
-            s.add(db_issue)
-            s.commit()
-            s.refresh(db_issue)
+from app.schema.issue import IssueCreate
 
 
 def db_create_issue(issue_data: IssueCreate, db: Session) -> IssueDB:
