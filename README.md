@@ -2,6 +2,11 @@
 
 Backend for demo Issue Tracker application utilizing SQLite, SQLAlchemy ORM, and FastAPI framework
 
+You can reference the Docker images available here: https://hub.docker.com/repository/docker/ethancloin/issue-tracker
+
+Currently, version 1.0.1 is hosted via digitalocean and available at http://24.199.84.215:8000/docs.
+
+
 ## Running Server
 To run the server on your local machine, you will need to ensure that `poetry` and `python3.10` 
 are already installed. Refer to official documentation if 
